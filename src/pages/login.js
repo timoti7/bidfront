@@ -1,19 +1,38 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Login() {
     const [phone, setPhone] = useState('');
     const [otp, setOtp] = useState('');
     const [error, setError] = useState(null);
+    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: OTP ile giriş işlemi yapılacak
-        // Örnek: API'ye kullanıcının telefon numarasını ve OTP kodunu gönder
+
         try {
-            // İşlem başarılıysa, kullanıcıyı ana sayfaya yönlendir
+            const response = await fetch('http://localhost:8000/api/accounts/verify-login-otp-mobile/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ phone, otp }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Kullanıcı doğrulaması başarısız.');
+            }
+
+            const userData = await response.json();
+            localStorage.setItem('userToken', userData.token);
+            localStorage.setItem('userPhone', phone);
+            localStorage.setItem('userId', userData.response.id); // Kullanıcı ID'sini localStorage'a kaydet
+
+            // Ana sayfaya yönlendir
+            router.push('/');
         } catch (err) {
-            setError('Giriş başarısız. Lütfen telefon numaranızı ve OTP kodunu kontrol edin.');
+            setError(err.message || 'Bir hata oluştu.');
         }
     };
 
@@ -29,7 +48,7 @@ export default function Login() {
                 />
                 <input
                     type="text"
-                    placeholder="OTP Kodu"
+                    placeholder="OTP"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                 />

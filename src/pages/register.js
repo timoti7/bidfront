@@ -1,18 +1,36 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Register() {
+    const [fname, setFname] = useState('');
+    const [lname, setLname] = useState('');
+    const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
     const [error, setError] = useState(null);
+    const router = useRouter();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // TODO: Telefon numarasına OTP gönderme işlemi yapılacak
-        // Örnek: API'ye kullanıcının telefon numarasını gönder ve OTP kodu al
+        const otp = '1234'; // OTP'yi otomatik olarak ayarla
+
         try {
-            // OTP gönderme işlemi başarılıysa, kullanıcıyı OTP doğrulama sayfasına yönlendir
+            const response = await fetch('http://127.0.0.1:8000/api/accounts/user-register/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ fname, lname, email, phone, otp }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Kayıt işlemi başarısız.');
+            }
+
+            // Kayıt başarılıysa, kullanıcıyı giriş sayfasına yönlendir
+            router.push('/login');
         } catch (err) {
-            setError('Kayıt başarısız. Lütfen telefon numaranızı kontrol edin.');
+            setError(err.message || 'Bir hata oluştu.');
         }
     };
 
@@ -20,6 +38,24 @@ export default function Register() {
         <div className="auth-container">
             <h2>Kayıt Ol</h2>
             <form onSubmit={handleSubmit}>
+                <input
+                    type="text"
+                    placeholder="Ad"
+                    value={fname}
+                    onChange={(e) => setFname(e.target.value)}
+                />
+                <input
+                    type="text"
+                    placeholder="Soyad"
+                    value={lname}
+                    onChange={(e) => setLname(e.target.value)}
+                />
+                <input
+                    type="email"
+                    placeholder="E-posta"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                />
                 <input
                     type="tel"
                     placeholder="Telefon Numarası"
